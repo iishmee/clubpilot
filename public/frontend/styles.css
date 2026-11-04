@@ -1,0 +1,276 @@
+:root {
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #172033;
+    background: #f5f7fb;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+}
+
+a {
+    color: inherit;
+}
+
+.page {
+    width: min(100% - 40px, 960px);
+    margin: 0 auto;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0;
+    border-bottom: 1px solid #e3e8f1;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 750;
+    text-decoration: none;
+}
+
+.brand-mark {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border-radius: 11px;
+    background: #4567e8;
+    color: white;
+}
+
+.environment,
+.eyebrow,
+.step {
+    color: #71809a;
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.11em;
+}
+
+.environment {
+    padding: 8px 10px;
+    border: 1px solid #e0e6f0;
+    border-radius: 999px;
+    background: white;
+}
+
+.intro {
+    padding: 64px 0 32px;
+}
+
+.intro .eyebrow {
+    color: #4567e8;
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+h1 {
+    margin-bottom: 12px;
+    font-size: clamp(36px, 6vw, 56px);
+    letter-spacing: -0.055em;
+    line-height: 1.05;
+}
+
+.description {
+    max-width: 560px;
+    margin-bottom: 0;
+    color: #65728a;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.status-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+    border: 1px solid #e4e9f2;
+    border-radius: 18px;
+    background: white;
+    box-shadow: 0 12px 35px rgb(34 51 84 / 5%);
+}
+
+.status-icon {
+    display: grid;
+    width: 52px;
+    height: 52px;
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: 15px;
+    background: #eef2ff;
+    color: #4567e8;
+}
+
+.status-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.status-copy {
+    flex: 1;
+}
+
+.status-copy .eyebrow {
+    margin-bottom: 7px;
+}
+
+.status-copy h2 {
+    margin-bottom: 5px;
+    font-size: 19px;
+}
+
+.status-detail {
+    margin-bottom: 0;
+    color: #71809a;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #a7b0c0;
+}
+
+.indicator.checking {
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.indicator.connected {
+    background: #27a36a;
+    box-shadow: 0 0 0 5px #e6f6ed;
+}
+
+.indicator.disconnected {
+    background: #d54b4b;
+    box-shadow: 0 0 0 5px #fff0f0;
+}
+
+.architecture {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 22px;
+}
+
+.architecture article {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid #e4e9f2;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.step {
+    color: #4567e8;
+}
+
+.architecture h2 {
+    margin: 14px 0 8px;
+    font-size: 16px;
+}
+
+.architecture p {
+    margin-bottom: 8px;
+    color: #71809a;
+    font-size: 13px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.architecture p:last-child {
+    margin-bottom: 0;
+}
+
+code {
+    color: #44516a;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.92em;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 28px 0 40px;
+    color: #71809a;
+    font-size: 13px;
+}
+
+footer a {
+    color: #4567e8;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+@keyframes pulse {
+    50% {
+        opacity: 0.4;
+    }
+}
+
+@media (max-width: 640px) {
+    .page {
+        width: min(100% - 28px, 960px);
+    }
+
+    .intro {
+        padding-top: 46px;
+    }
+
+    .status-card {
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px;
+    }
+
+    .status-icon {
+        width: 44px;
+        height: 44px;
+    }
+
+    .status-copy h2 {
+        font-size: 17px;
+    }
+
+    .architecture {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .architecture article {
+        padding: 18px;
+    }
+
+    footer {
+        flex-direction: column;
+        padding-bottom: 28px;
+    }
+}
