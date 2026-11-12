@@ -15,6 +15,17 @@
                 <span class="brand-mark" aria-hidden="true">C</span>
                 <span>ClubPilot</span>
             </a>
+            @if (auth()->user()->isOrganizer() || auth()->user()->isAdmin())
+                <nav aria-label="Event management">
+                    <a href="{{ route('events.index') }}">Event proposals</a>
+                    <a href="{{ route('venues.index') }}">Venues</a>
+                    <a href="{{ route('reservations.index') }}">Reservations</a>
+                    @if (auth()->user()->isAdmin())
+                        <a href="{{ route('events.reviews.index') }}">Proposal review</a>
+                        <a href="{{ route('reservations.reviews.index') }}">Reservation review</a>
+                    @endif
+                </nav>
+            @endif
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button class="logout-button" type="submit">Sign out</button>
