@@ -61,3 +61,5 @@ Route::get('/welcome', function () {
 })->name('welcome');
 
 require __DIR__.'/service_hours.php';
+
+require __DIR__.'/certificates.php';

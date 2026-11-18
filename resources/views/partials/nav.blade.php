@@ -14,6 +14,7 @@
                 @endif
                 <a class="nav-link" href="{{ route('volunteers.index') }}">Volunteering</a>
                 <a class="nav-link" href="{{ route('service-hours.index') }}">Service hours</a>
+                <a class="nav-link" href="{{ route('certificates.index') }}">Certificates</a>
                 <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
             </div>
         @endauth
