@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Policies\VolunteerRecruitmentPolicy;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[UsePolicy(VolunteerRecruitmentPolicy::class)]
 class VolunteerOpportunity extends Model
 {
     /** @use HasFactory<\Database\Factories\VolunteerOpportunityFactory> */
