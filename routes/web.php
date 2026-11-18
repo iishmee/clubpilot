@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/volunteer-opportunities/{opportunity}/apply', [VolunteerRecruitmentController::class, 'apply'])->name('volunteers.apply');
     Route::post('/volunteer-opportunities/{opportunity}/close', [VolunteerRecruitmentController::class, 'close'])->name('volunteers.close');
     Route::post('/volunteer-applications/{application}/review', [VolunteerRecruitmentController::class, 'reviewApplication'])->name('volunteers.applications.review');
+    require __DIR__.'/volunteers.php';
 });
 
 Route::get('/welcome', function () {

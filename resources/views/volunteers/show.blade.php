@@ -24,7 +24,13 @@
         <dd class="col-sm-9">{{ $acceptedCount }} / {{ $opportunity->slots_needed }}</dd>
     </dl>
 
+    @if (auth()->user()->isAdmin())
+        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">View shifts</a></div>
+    @endif
+
     @can('manage', $opportunity)
+        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">Manage shifts</a></div>
+
         @if ($opportunity->status === 'open')
             <form method="POST" action="{{ route('volunteers.close', $opportunity) }}" class="mb-4">
                 @csrf

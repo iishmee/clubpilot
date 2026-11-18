@@ -5,6 +5,10 @@
 @section('content')
     <h1 class="h2 mb-3">Volunteer opportunities</h1>
 
+    @if (auth()->user()->role === 'member')
+        <p><a class="btn btn-outline-primary" href="{{ route('shifts.mine') }}">My shifts</a></p>
+    @endif
+
     @if (auth()->user()->isOrganizer())
         <section class="card card-body mb-4">
             <h2 class="h5">Recruit volunteers for an approved event</h2>
