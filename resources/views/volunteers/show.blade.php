@@ -25,11 +25,11 @@
     </dl>
 
     @if (auth()->user()->isAdmin())
-        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">View shifts</a></div>
+        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">View shifts</a> <a class="btn btn-outline-primary" href="{{ route('tasks.index', $opportunity) }}">View tasks</a></div>
     @endif
 
     @can('manage', $opportunity)
-        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">Manage shifts</a></div>
+        <div class="mb-3"><a class="btn btn-outline-primary" href="{{ route('shifts.index', $opportunity) }}">Manage shifts</a> <a class="btn btn-outline-primary" href="{{ route('tasks.index', $opportunity) }}">Manage tasks</a></div>
 
         @if ($opportunity->status === 'open')
             <form method="POST" action="{{ route('volunteers.close', $opportunity) }}" class="mb-4">

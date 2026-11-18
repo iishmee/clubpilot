@@ -2,63 +2,104 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\VolunteerApplication;
+use App\Models\VolunteerOpportunity;
+use App\Models\VolunteerTask;
+use App\Services\VolunteerTaskService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class VolunteerTaskController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(private VolunteerTaskService $service) {}
+
+    public function index(VolunteerOpportunity $opportunity): View
     {
-        //
+        Gate::authorize('viewAny', [VolunteerTask::class, $opportunity]);
+        $opportunity->load('event');
+
+        $tasks = VolunteerTask::query()
+            ->where('volunteer_opportunity_id', $opportunity->id)
+            ->with('assignee')
+            ->latest()
+            ->get();
+
+        $volunteers = User::query()
+            ->whereIn('id', VolunteerApplication::query()
+                ->where('volunteer_opportunity_id', $opportunity->id)
+                ->where('status', VolunteerApplication::STATUS_ACCEPTED)
+                ->select('user_id'))
+            ->orderBy('name')
+            ->get();
+
+        return view('tasks.index', [
+            'opportunity' => $opportunity,
+            'tasks' => $tasks,
+            'volunteers' => $volunteers,
+            'canManage' => Gate::allows('create', [VolunteerTask::class, $opportunity]),
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request, VolunteerOpportunity $opportunity): RedirectResponse
     {
-        //
+        Gate::authorize('create', [VolunteerTask::class, $opportunity]);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:5000'],
+            'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
+            'due_at' => ['nullable', 'date'],
+        ]);
+
+        $this->service->create($opportunity, $data);
+
+        return redirect()->route('tasks.index', $opportunity)->with('status', 'Task created.');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function assign(Request $request, VolunteerTask $task): RedirectResponse
     {
-        //
+        Gate::authorize('manage', $task);
+
+        $data = $request->validate(['assigned_to' => ['nullable', 'integer', 'exists:users,id']]);
+        $this->service->assign($task, isset($data['assigned_to']) ? (int) $data['assigned_to'] : null);
+
+        return redirect()->route('tasks.index', $task->volunteer_opportunity_id)->with('status', 'Task assignment updated.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function updateStatus(Request $request, VolunteerTask $task): RedirectResponse
     {
-        //
+        Gate::authorize('updateStatus', $task);
+
+        $data = $request->validate(['status' => ['required', Rule::in(VolunteerTask::STATUSES)]]);
+        $this->service->updateStatus($task, $data['status']);
+
+        return back()->with('status', 'Task status updated.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function destroy(VolunteerTask $task): RedirectResponse
     {
-        //
+        Gate::authorize('manage', $task);
+
+        $this->service->delete($task);
+
+        return redirect()->route('tasks.index', $task->volunteer_opportunity_id)->with('status', 'Task deleted.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    /** A volunteer's own tasks. */
+    public function mine(): View
     {
-        //
-    }
+        abort_unless(auth()->user()->role === 'member', 403);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $tasks = VolunteerTask::query()
+            ->where('assigned_to', auth()->id())
+            ->with('opportunity.event')
+            ->latest()
+            ->get();
+
+        return view('tasks.mine', compact('tasks'));
     }
 }
