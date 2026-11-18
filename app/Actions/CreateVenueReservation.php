@@ -35,19 +35,6 @@ class CreateVenueReservation
                 ]);
             }
 
-            $conflict = Reservation::query()
-                ->where('venue_id', $venue->id)
-                ->whereIn('status', [Reservation::STATUS_PENDING, Reservation::STATUS_APPROVED])
-                ->where('starts_at', '<', $endsAt)
-                ->where('ends_at', '>', $startsAt)
-                ->exists();
-
-            if ($conflict) {
-                throw ValidationException::withMessages([
-                    'venue_id' => 'This venue already has a pending or approved reservation during that time. Choose another venue or time slot.',
-                ]);
-            }
-
             return Reservation::query()->create([
                 'event_id' => $event->id,
                 'venue_id' => $venue->id,

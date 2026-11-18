@@ -88,7 +88,106 @@ class VenueReservationTest extends TestCase
         $this->actingAs($organizer)->get(route('reservations.reviews.index'))->assertForbidden();
     }
 
-    public function test_overlapping_active_requests_conflict_but_adjacent_slots_are_allowed(): void
+    public function test_overlapping_pending_requests_are_allowed_and_approval_enforces_conflicts(): void
+    {
+        $organizer = User::factory()->create(['role' => 'organizer']);
+        $otherOrganizer = User::factory()->create(['role' => 'organizer']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $event = $this->event($organizer, Event::STATUS_APPROVED);
+        $otherEvent = $this->event($otherOrganizer, Event::STATUS_APPROVED);
+        $venue = Venue::query()->create([
+            'name' => 'Lecture Hall',
+            'location' => 'North Campus',
+            'capacity' => 100,
+            'availability_status' => 'available',
+        ]);
+
+        $this->actingAs($organizer)->post(route('events.reservations.store', $event), [
+            'venue_id' => $venue->id,
+            'starts_at' => '2027-03-10 10:00',
+            'ends_at' => '2027-03-10 11:00',
+        ])->assertRedirect(route('events.show', $event))
+            ->assertSessionHas('status', 'Your venue request has been submitted and is awaiting University Administrator approval.');
+        $first = Reservation::query()->where('event_id', $event->id)->firstOrFail();
+        $this->assertSame(Reservation::STATUS_PENDING, $first->status);
+
+        $this->actingAs($otherOrganizer)->post(route('events.reservations.store', $otherEvent), [
+            'venue_id' => $venue->id,
+            'starts_at' => '2027-03-10 10:30',
+            'ends_at' => '2027-03-10 11:30',
+        ])->assertRedirect(route('events.show', $otherEvent));
+        $second = Reservation::query()->where('event_id', $otherEvent->id)->firstOrFail();
+        $this->assertSame(Reservation::STATUS_PENDING, $second->status);
+        $this->assertDatabaseCount('reservations', 2);
+
+        $this->actingAs($organizer)->get(route('reservations.show', $first))
+            ->assertOk()
+            ->assertSee('Pending Administrator Approval')
+            ->assertDontSee('Confirmed booking');
+        $this->actingAs($organizer)->get(route('events.show', $event))
+            ->assertOk()
+            ->assertSee('Requested venue')
+            ->assertDontSee('Confirmed venue');
+
+        $this->actingAs($admin)->post(route('reservations.review', $first), [
+            'decision' => 'approved',
+        ])->assertRedirect();
+        $this->assertSame(Reservation::STATUS_APPROVED, $first->fresh()->status);
+        $this->assertSame($admin->id, $first->fresh()->reviewer_id);
+        $this->assertNotNull($first->fresh()->reviewed_at);
+
+        $this->actingAs($admin)->from(route('reservations.show', $second))->followingRedirects()
+            ->post(route('reservations.review', $second), ['decision' => 'approved'])
+            ->assertOk()
+            ->assertSee('This venue is already assigned for an overlapping time');
+        $this->assertSame(Reservation::STATUS_PENDING, $second->fresh()->status);
+
+        $rejectionReason = 'The venue has already been assigned for this time.';
+        $this->actingAs($admin)->post(route('reservations.review', $second), [
+            'decision' => 'rejected',
+            'feedback' => $rejectionReason,
+        ])->assertRedirect();
+        $this->assertSame(Reservation::STATUS_REJECTED, $second->fresh()->status);
+        $this->actingAs($otherOrganizer)->get(route('events.show', $otherEvent))
+            ->assertSee('Rejected')
+            ->assertSee($rejectionReason);
+
+        $thirdOrganizer = User::factory()->create(['role' => 'organizer']);
+        $thirdEvent = $this->event($thirdOrganizer, Event::STATUS_APPROVED);
+        $this->actingAs($thirdOrganizer)->post(route('events.reservations.store', $thirdEvent), [
+            'venue_id' => $venue->id,
+            'starts_at' => '2027-03-10 11:00',
+            'ends_at' => '2027-03-10 12:00',
+        ])->assertRedirect(route('events.show', $thirdEvent));
+        $third = Reservation::query()->where('event_id', $thirdEvent->id)->firstOrFail();
+        $this->actingAs($admin)->post(route('reservations.review', $third), [
+            'decision' => 'approved',
+        ])->assertRedirect();
+        $this->assertSame(Reservation::STATUS_APPROVED, $third->fresh()->status);
+    }
+
+    public function test_adjacent_reservation_requests_can_both_be_approved(): void
+    {
+        $organizer = User::factory()->create(['role' => 'organizer']);
+        $admin = User::factory()->create(['role' => 'admin']);
+        $venue = Venue::query()->create([
+            'name' => 'Lecture Hall',
+            'location' => 'North Campus',
+            'capacity' => 100,
+            'availability_status' => 'available',
+        ]);
+        $first = $this->reservation($this->event($organizer, Event::STATUS_APPROVED), $venue, $organizer, '10:00', '11:00');
+        $second = $this->reservation($this->event($organizer, Event::STATUS_APPROVED), $venue, $organizer, '11:00', '12:00');
+
+        foreach ([$first, $second] as $reservation) {
+            $this->actingAs($admin)->post(route('reservations.review', $reservation), [
+                'decision' => 'approved',
+            ])->assertRedirect();
+            $this->assertSame(Reservation::STATUS_APPROVED, $reservation->fresh()->status);
+        }
+    }
+
+    public function test_organizer_cannot_review_a_request_or_set_its_status_when_submitting(): void
     {
         $organizer = User::factory()->create(['role' => 'organizer']);
         $event = $this->event($organizer, Event::STATUS_APPROVED);
@@ -103,23 +202,20 @@ class VenueReservationTest extends TestCase
             'venue_id' => $venue->id,
             'starts_at' => '2027-03-10 10:00',
             'ends_at' => '2027-03-10 11:00',
-        ])->assertRedirect(route('events.show', $event));
+            'status' => Reservation::STATUS_APPROVED,
+            'reviewer_id' => $organizer->id,
+        ])->assertRedirect();
 
-        $this->actingAs($organizer)->from(route('events.reservations.create', $event))
-            ->post(route('events.reservations.store', $event), [
-                'venue_id' => $venue->id,
-                'starts_at' => '2027-03-10 10:30',
-                'ends_at' => '2027-03-10 11:30',
-            ])
-            ->assertSessionHasErrors('venue_id');
-
-        $this->actingAs($organizer)->post(route('events.reservations.store', $event), [
-            'venue_id' => $venue->id,
-            'starts_at' => '2027-03-10 11:00',
-            'ends_at' => '2027-03-10 12:00',
-        ])->assertRedirect(route('events.show', $event));
-
-        $this->assertDatabaseCount('reservations', 2);
+        $reservation = Reservation::query()->firstOrFail();
+        $this->assertSame(Reservation::STATUS_PENDING, $reservation->status);
+        $this->actingAs($organizer)->post(route('reservations.review', $reservation), [
+            'decision' => 'approved',
+        ])->assertForbidden();
+        $this->actingAs($organizer)->post(route('reservations.review', $reservation), [
+            'decision' => 'rejected',
+            'feedback' => 'Not approved.',
+        ])->assertForbidden();
+        $this->assertSame(Reservation::STATUS_PENDING, $reservation->fresh()->status);
     }
 
     public function test_incomplete_legacy_venues_are_not_offered_for_reservation(): void
@@ -223,10 +319,17 @@ class VenueReservationTest extends TestCase
         ])->assertRedirect(route('events.show', $event));
         $reservation = Reservation::query()->firstOrFail();
         $this->assertSame(Reservation::STATUS_PENDING, $reservation->status);
+        $this->actingAs($organizer)->get(route('events.show', $event))
+            ->assertOk()
+            ->assertSee('Pending Administrator Approval')
+            ->assertDontSee('Confirmed venue');
 
         $this->actingAs($admin)->get(route('reservations.reviews.index'))
             ->assertOk()
             ->assertSee('Project Showcase');
+        $this->actingAs($admin)->get(route('reservations.reviews.index'))
+            ->assertSee($organizer->name)
+            ->assertSee('Main Hall');
         $this->actingAs($admin)->post(route('reservations.review', $reservation), [
             'decision' => 'approved',
         ])->assertRedirect();
@@ -249,6 +352,18 @@ class VenueReservationTest extends TestCase
             'starts_at' => '2027-03-10 10:00',
             'ends_at' => '2027-03-10 12:00',
             'proposal_status' => $status,
+        ]);
+    }
+
+    private function reservation(Event $event, Venue $venue, User $organizer, string $start, string $end): Reservation
+    {
+        return Reservation::query()->create([
+            'event_id' => $event->id,
+            'venue_id' => $venue->id,
+            'requester_id' => $organizer->id,
+            'starts_at' => '2027-03-10 '.$start,
+            'ends_at' => '2027-03-10 '.$end,
+            'status' => Reservation::STATUS_PENDING,
         ]);
     }
 }

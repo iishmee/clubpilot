@@ -16,7 +16,17 @@
                             <td><a href="{{ route('events.show', $reservation->event) }}">{{ $reservation->event->title }}</a></td>
                             <td>{{ $reservation->venue->name }}</td>
                             <td>{{ $reservation->starts_at->format('M j, Y H:i') }} – {{ $reservation->ends_at->format('M j, Y H:i') }}</td>
-                            <td><a href="{{ route('reservations.show', $reservation) }}">{{ str($reservation->status)->title() }}</a></td>
+                            <td>
+                                <a href="{{ route('reservations.show', $reservation) }}">
+                                    @if ($reservation->status === \App\Models\Reservation::STATUS_PENDING)
+                                        Pending Administrator Approval
+                                    @elseif ($reservation->status === \App\Models\Reservation::STATUS_APPROVED)
+                                        Approved · Confirmed
+                                    @else
+                                        Rejected
+                                    @endif
+                                </a>
+                            </td>
                             <td>{{ $reservation->requester->name }}</td>
                         </tr>
                     @endforeach
