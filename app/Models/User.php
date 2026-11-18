@@ -45,4 +45,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Event::class, 'organizer_id');
     }
+
+    public function feedbacks(): HasMany
+    {
+    return $this->hasMany(Feedback::class);
+    }
+
+    public function improvementActions(): HasMany
+    {
+    return $this->hasMany(ImprovementAction::class, 'created_by');
+    }
 }

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Budget;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
 
 class Event extends Model
 {
@@ -14,13 +17,9 @@ class Event extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
-
     public const STATUS_PENDING_REVIEW = 'pending_review';
-
     public const STATUS_REVISION_REQUESTED = 'revision_requested';
-
     public const STATUS_APPROVED = 'approved';
-
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -59,5 +58,21 @@ class Event extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(Reservation::class);
+    }
+
+    public function budget(): HasOne
+    {
+        return $this->hasOne(Budget::class);
+    }
+    
+
+    public function feedbacks(): HasMany
+    {
+    return $this->hasMany(Feedback::class);
+    }
+
+    public function improvementActions(): HasMany
+    {
+    return $this->hasMany(ImprovementAction::class);
     }
 }
