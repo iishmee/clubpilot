@@ -3,7 +3,7 @@
 @section('title', 'Request a venue · ClubPilot')
 
 @section('content')
-    <h1 class="h2">Request a venue</h1>
+    <h1 class="h2">Request Venue</h1>
     <p>For <a href="{{ route('events.show', $event) }}">{{ $event->title }}</a></p>
     @if ($venues->isEmpty())
         <div class="alert alert-info">No venues are currently available. Contact an administrator.</div>
@@ -31,8 +31,8 @@
                     @error('ends_at')<div class="text-danger">{{ $message }}</div>@enderror
                 </div>
             </div>
-            <p class="text-muted">Pending and approved requests reserve their time slot. Adjacent time slots are allowed.</p>
-            <button class="btn btn-primary">Submit venue request</button>
+            <p class="text-muted">This is a request, not a confirmed booking. A venue is assigned only after University Administrator approval. Competing requests may be submitted for the same time slot.</p>
+            <button class="btn btn-primary">Submit Venue Request</button>
             <a class="btn btn-outline-secondary" href="{{ route('events.show', $event) }}">Cancel</a>
         </form>
     @endif

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Actions\CreateVenueReservation;
+use App\Actions\ReviewVenueReservation;
 use App\Models\Event;
 use App\Models\Reservation;
 use App\Models\Venue;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -64,7 +64,10 @@ class ReservationController extends Controller
             $data['ends_at'],
         );
 
-        return redirect()->route('events.show', $event)->with('status', 'Venue request submitted for approval.');
+        return redirect()->route('events.show', $event)->with(
+            'status',
+            'Your venue request has been submitted and is awaiting University Administrator approval.',
+        );
     }
 
     public function show(Reservation $reservation): View
@@ -93,30 +96,24 @@ class ReservationController extends Controller
         return view('reservations.review-index', compact('reservations'));
     }
 
-    public function review(Request $request, Reservation $reservation): RedirectResponse
-    {
-        Gate::authorize('review', $reservation);
+    public function review(
+        Request $request,
+        Reservation $reservation,
+        ReviewVenueReservation $reviewReservation,
+    ): RedirectResponse {
+        Gate::authorize('reviewAny', Reservation::class);
 
         $data = $request->validate([
             'decision' => ['required', 'in:approved,rejected'],
             'feedback' => ['nullable', 'string', 'required_if:decision,rejected', 'max:5000'],
         ]);
 
-        DB::transaction(function () use ($data, $reservation, $request): void {
-            $lockedReservation = Reservation::query()->lockForUpdate()->findOrFail($reservation->id);
-            abort_unless(
-                $lockedReservation->status === Reservation::STATUS_PENDING,
-                409,
-                'Only pending venue requests can be reviewed.',
-            );
-
-            $lockedReservation->update([
-                'status' => $data['decision'],
-                'review_feedback' => $data['feedback'] ?? null,
-                'reviewer_id' => $request->user()->id,
-                'reviewed_at' => now(),
-            ]);
-        });
+        $reviewReservation->handle(
+            $reservation->id,
+            $request->user(),
+            $data['decision'],
+            $data['feedback'] ?? null,
+        );
 
         return redirect()->route('reservations.show', $reservation)->with('status', 'Venue request review recorded.');
     }

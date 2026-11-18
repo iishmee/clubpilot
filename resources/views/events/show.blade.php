@@ -56,7 +56,7 @@
     @endif
 
     @if ($event->proposal_status === \App\Models\Event::STATUS_APPROVED && auth()->user()->isOrganizer() && auth()->id() === $event->organizer_id)
-        <a class="btn btn-primary my-3" href="{{ route('events.reservations.create', $event) }}">Request a venue</a>
+        <a class="btn btn-primary my-3" href="{{ route('events.reservations.create', $event) }}">Request Venue</a>
     @endif
 
     <h2 class="h4 mt-4">Review history</h2>
@@ -73,9 +73,20 @@
     <h2 class="h4 mt-4">Venue reservations</h2>
     @forelse ($event->reservations as $reservation)
         <article class="border rounded p-3 mb-2">
-            <a href="{{ route('reservations.show', $reservation) }}">{{ $reservation->venue->name }}</a>
-            <span class="badge text-bg-secondary">{{ str($reservation->status)->title() }}</span>
-            <p class="mb-0">{{ $reservation->venue->location }} · {{ $reservation->starts_at->format('M j, Y H:i') }} – {{ $reservation->ends_at->format('M j, Y H:i') }}</p>
+            @if ($reservation->status === \App\Models\Reservation::STATUS_APPROVED)
+                <strong>Confirmed venue:</strong>
+                <a href="{{ route('reservations.show', $reservation) }}">{{ $reservation->venue?->name ?? 'Venue' }}</a>
+                <span class="badge text-bg-success">Approved · Confirmed</span>
+                <p class="mb-0">{{ $reservation->venue?->location }} · {{ $reservation->starts_at?->format('M j, Y H:i') }} – {{ $reservation->ends_at?->format('M j, Y H:i') }}</p>
+            @elseif ($reservation->status === \App\Models\Reservation::STATUS_PENDING)
+                <strong>Requested venue:</strong> {{ $reservation->venue?->name ?? 'Venue' }}
+                <span class="badge text-bg-warning">Pending Administrator Approval</span>
+                <p class="mb-0">{{ $reservation->starts_at?->format('M j, Y H:i') }} – {{ $reservation->ends_at?->format('M j, Y H:i') }}</p>
+            @else
+                <strong>Venue request:</strong> {{ $reservation->venue?->name ?? 'Venue' }}
+                <span class="badge text-bg-secondary">Rejected</span>
+            @endif
+            <a class="ms-2" href="{{ route('reservations.show', $reservation) }}">Request details</a>
             @if ($reservation->review_feedback)<p class="mb-0 mt-1">{{ $reservation->review_feedback }}</p>@endif
         </article>
     @empty
