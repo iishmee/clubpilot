@@ -13,6 +13,7 @@
                     <a class="nav-link" href="{{ route('reservations.reviews.index') }}">Venue request review</a>
                 @endif
                 <a class="nav-link" href="{{ route('volunteers.index') }}">Volunteering</a>
+                <a class="nav-link" href="{{ route('service-hours.index') }}">Service hours</a>
                 <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
             </div>
         @endauth

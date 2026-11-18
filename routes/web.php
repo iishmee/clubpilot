@@ -59,3 +59,5 @@ Route::get('/welcome', function () {
         'Content-Type' => 'text/html; charset=UTF-8',
     ]);
 })->name('welcome');
+
+require __DIR__.'/service_hours.php';
