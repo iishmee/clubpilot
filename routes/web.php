@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\VenueController;
+use App\Http\Controllers\VolunteerRecruitmentController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/venues', [VenueController::class, 'index'])->name('venues.index');
     Route::get('/venues/create', [VenueController::class, 'create'])->name('venues.create');
     Route::post('/venues', [VenueController::class, 'store'])->name('venues.store');
+
+    Route::get('/volunteer-opportunities', [VolunteerRecruitmentController::class, 'index'])->name('volunteers.index');
+    Route::get('/events/{event}/volunteer-opportunities/create', [VolunteerRecruitmentController::class, 'create'])->name('volunteers.create');
+    Route::post('/events/{event}/volunteer-opportunities', [VolunteerRecruitmentController::class, 'store'])->name('volunteers.store');
+    Route::get('/volunteer-opportunities/{opportunity}', [VolunteerRecruitmentController::class, 'show'])->name('volunteers.show');
+    Route::post('/volunteer-opportunities/{opportunity}/apply', [VolunteerRecruitmentController::class, 'apply'])->name('volunteers.apply');
+    Route::post('/volunteer-opportunities/{opportunity}/close', [VolunteerRecruitmentController::class, 'close'])->name('volunteers.close');
+    Route::post('/volunteer-applications/{application}/review', [VolunteerRecruitmentController::class, 'reviewApplication'])->name('volunteers.applications.review');
 });
 
 Route::get('/welcome', function () {
