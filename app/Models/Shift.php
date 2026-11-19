@@ -15,7 +15,7 @@ class Shift extends Model
     /** @use HasFactory<\Database\Factories\ShiftFactory> */
     use HasFactory;
 
-    protected $fillable = ['volunteer_opportunity_id', 'starts_at', 'ends_at', 'capacity'];
+    protected $fillable = ['volunteer_opportunity_id', 'title', 'starts_at', 'ends_at', 'capacity'];
 
     protected function casts(): array
     {

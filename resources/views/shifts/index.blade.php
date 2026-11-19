@@ -17,20 +17,24 @@
             <h2 class="h5">Add a shift</h2>
             <form method="POST" action="{{ route('shifts.store', $opportunity) }}" class="row g-3">
                 @csrf
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label" for="title">Shift name</label>
+                    <input class="form-control" type="text" id="title" name="title" value="{{ old('title') }}" required maxlength="255" placeholder="Morning registration">
+                </div>
+                <div class="col-md-3">
                     <label class="form-label" for="starts_at">Starts</label>
                     <input class="form-control" type="datetime-local" id="starts_at" name="starts_at" value="{{ old('starts_at') }}" required>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label" for="ends_at">Ends</label>
                     <input class="form-control" type="datetime-local" id="ends_at" name="ends_at" value="{{ old('ends_at') }}" required>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label" for="capacity">Volunteers needed</label>
                     <input class="form-control" type="number" min="1" id="capacity" name="capacity" value="{{ old('capacity', 1) }}" required>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button class="btn btn-primary w-100">Add shift</button>
+                <div class="col-12">
+                    <button class="btn btn-primary">Add shift</button>
                 </div>
             </form>
         </section>
@@ -40,7 +44,7 @@
         <article class="border rounded p-3 mb-3">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <strong>{{ $shift->starts_at->format('M j, Y H:i') }} – {{ $shift->ends_at->format('M j, Y H:i') }}</strong>
+                    <strong>{{ $shift->title ? $shift->title . ' · ' : '' }}{{ $shift->starts_at->format('M j, Y H:i') }} – {{ $shift->ends_at->format('M j, Y H:i') }}</strong>
                     <span class="badge text-bg-secondary ms-2">{{ $shift->assignments->count() }} / {{ $shift->capacity }} filled</span>
                 </div>
                 @if ($canManage)

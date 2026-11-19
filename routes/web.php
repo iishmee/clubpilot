@@ -59,3 +59,13 @@ Route::get('/welcome', function () {
         'Content-Type' => 'text/html; charset=UTF-8',
     ]);
 })->name('welcome');
+
+// F12 - Volunteer shift scheduling
+Route::middleware('auth')->group(function () {
+    Route::get('/volunteer-opportunities/{opportunity}/shifts', [\App\Http\Controllers\ShiftController::class, 'index'])->name('shifts.index');
+    Route::post('/volunteer-opportunities/{opportunity}/shifts', [\App\Http\Controllers\ShiftController::class, 'store'])->name('shifts.store');
+    Route::post('/shifts/{shift}/assignments', [\App\Http\Controllers\ShiftController::class, 'assign'])->name('shifts.assign');
+    Route::match(['post', 'delete'], '/shift-assignments/{assignment}/remove', [\App\Http\Controllers\ShiftController::class, 'unassign'])->name('shifts.unassign');
+    Route::match(['post', 'delete'], '/shifts/{shift}/delete', [\App\Http\Controllers\ShiftController::class, 'destroy'])->name('shifts.destroy');
+    Route::get('/my-shifts', [\App\Http\Controllers\ShiftController::class, 'mine'])->name('shifts.mine');
+});

@@ -49,6 +49,7 @@ class ShiftController extends Controller
         Gate::authorize('create', [Shift::class, $opportunity]);
 
         $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
             'starts_at' => ['required', 'date'],
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'capacity' => ['required', 'integer', 'min:1', 'max:500'],

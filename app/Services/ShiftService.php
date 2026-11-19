@@ -19,6 +19,7 @@ class ShiftService
     {
         return Shift::query()->create([
             'volunteer_opportunity_id' => $opportunity->id,
+            'title' => $data['title'],
             'starts_at' => $data['starts_at'],
             'ends_at' => $data['ends_at'],
             'capacity' => $data['capacity'],
