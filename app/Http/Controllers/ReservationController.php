@@ -2,119 +2,63 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\CreateVenueReservation;
-use App\Actions\ReviewVenueReservation;
-use App\Models\Event;
-use App\Models\Reservation;
-use App\Models\Venue;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\View\View;
 
 class ReservationController extends Controller
 {
-    public function index(): View
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        Gate::authorize('viewAny', Reservation::class);
-
-        $reservations = Reservation::query()
-            ->whereNotNull('event_id')
-            ->whereNotNull('venue_id')
-            ->whereNotNull('requester_id')
-            ->whereNotNull('starts_at')
-            ->whereNotNull('ends_at')
-            ->with(['event', 'venue', 'requester'])
-            ->when(! auth()->user()->isAdmin(), fn ($query) => $query->where('requester_id', auth()->id()))
-            ->latest()
-            ->paginate(15);
-
-        return view('reservations.index', compact('reservations'));
+        //
     }
 
-    public function create(Event $event): View
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
     {
-        Gate::authorize('create', [Reservation::class, $event]);
-
-        $venues = Venue::query()
-            ->where('availability_status', 'available')
-            ->whereNotNull('name')
-            ->whereNotNull('location')
-            ->whereNotNull('capacity')
-            ->orderBy('name')
-            ->get();
-
-        return view('reservations.create', compact('event', 'venues'));
+        //
     }
 
-    public function store(Request $request, Event $event, CreateVenueReservation $createReservation): RedirectResponse
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        Gate::authorize('create', [Reservation::class, $event]);
-
-        $data = $request->validate([
-            'venue_id' => ['required', 'integer', 'exists:venues,id'],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after:starts_at'],
-        ]);
-        $createReservation->handle(
-            $event->id,
-            $data['venue_id'],
-            $request->user(),
-            $data['starts_at'],
-            $data['ends_at'],
-        );
-
-        return redirect()->route('events.show', $event)->with(
-            'status',
-            'Your venue request has been submitted and is awaiting University Administrator approval.',
-        );
+        //
     }
 
-    public function show(Reservation $reservation): View
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
     {
-        $reservation->load(['event.organizer', 'venue', 'requester', 'reviewer']);
-        Gate::authorize('view', $reservation);
-
-        return view('reservations.show', compact('reservation'));
+        //
     }
 
-    public function reviewIndex(): View
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
     {
-        Gate::authorize('reviewAny', Reservation::class);
-
-        $reservations = Reservation::query()
-            ->where('status', Reservation::STATUS_PENDING)
-            ->whereNotNull('event_id')
-            ->whereNotNull('venue_id')
-            ->whereNotNull('requester_id')
-            ->whereNotNull('starts_at')
-            ->whereNotNull('ends_at')
-            ->with(['event', 'venue', 'requester'])
-            ->oldest()
-            ->paginate(15);
-
-        return view('reservations.review-index', compact('reservations'));
+        //
     }
 
-    public function review(
-        Request $request,
-        Reservation $reservation,
-        ReviewVenueReservation $reviewReservation,
-    ): RedirectResponse {
-        Gate::authorize('reviewAny', Reservation::class);
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
 
-        $data = $request->validate([
-            'decision' => ['required', 'in:approved,rejected'],
-            'feedback' => ['nullable', 'string', 'required_if:decision,rejected', 'max:5000'],
-        ]);
-
-        $reviewReservation->handle(
-            $reservation->id,
-            $request->user(),
-            $data['decision'],
-            $data['feedback'] ?? null,
-        );
-
-        return redirect()->route('reservations.show', $reservation)->with('status', 'Venue request review recorded.');
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
     }
 }

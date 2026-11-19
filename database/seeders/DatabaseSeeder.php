@@ -15,14 +15,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        if (app()->environment(['local', 'testing'])) {
-            User::query()->firstOrCreate(
-                ['email' => 'test@example.com'],
-                [
-                    'name' => 'ClubPilot Demo',
-                    'password' => 'password',
-                ],
-            );
-        }
+        User::query()->firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'ClubPilot Demo',
+                'password' => 'password',
+            ],
+        );
     }
 }
